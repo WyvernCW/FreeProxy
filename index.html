@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://opencode.ai; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
+    <link rel="icon" href="/logo.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="/logo.jpg">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>OpenCode Proxy</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --border: #222;
+            --text: #e5e5e5;
+            --text-dim: #888;
+            --accent: #22c55e;
+            --accent-dim: #166534;
+            --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 48px 0 32px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .brand h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-family: var(--mono);
+        }
+
+        .status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        header p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        /* Endpoint */
+        .endpoint {
+            margin-top: 20px;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .endpoint code {
+            color: var(--accent);
+            user-select: all;
+        }
+
+        .endpoint .label {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Video Showcase */
+        .showcase {
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .showcase h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: -0.01em;
+        }
+
+        .video-wrap {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #000;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .video-wrap video {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .video-wrap:fullscreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            border: none;
+            border-radius: 0;
+        }
+
+        .video-wrap:fullscreen video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .video-wrap:fullscreen .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 20px 16px;
+        }
+
+        .video-wrap:fullscreen .progress-wrap {
+            height: 5px;
+        }
+
+        .video-wrap:fullscreen .progress-wrap:hover {
+            height: 8px;
+        }
+
+        .video-wrap:fullscreen .ctrl-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .video-wrap:fullscreen .time {
+            font-size: 0.85rem;
+        }
+
+        .video-wrap:fullscreen .skip-indicator {
+            width: 80px;
+            height: 80px;
+        }
+
+        .video-wrap:fullscreen .skip-indicator svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        .video-wrap:fullscreen .skip-label {
+            font-size: 0.8rem;
+        }
+
+        /* Skip indicators */
+        .skip-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }
+
+        .skip-indicator.left { left: 15%; }
+        .skip-indicator.right { right: 15%; }
+
+        .skip-indicator.show {
+            opacity: 1;
+            animation: skipPop 0.4s ease-out forwards;
+        }
+
+        @keyframes skipPop {
+            0% { transform: translateY(-50%) scale(0.6); opacity: 0; }
+            30% { transform: translateY(-50%) scale(1.1); opacity: 1; }
+            100% { transform: translateY(-50%) scale(1); opacity: 0; }
+        }
+
+        .skip-indicator svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .skip-label {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        /* Controls overlay */
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 12px 10px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .video-wrap:hover .controls,
+        .video-wrap.paused .controls {
+            opacity: 1;
+        }
+
+        /* Progress bar */
+        .progress-wrap {
+            position: relative;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: height 0.1s;
+        }
+
+        .progress-wrap:hover {
+            height: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 0%;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            transition: transform 0.1s;
+        }
+
+        .progress-wrap:hover .progress-fill::after {
+            transform: translateY(-50%) scale(1);
+        }
+
+        /* Bottom row */
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ctrl-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .ctrl-btn:hover svg {
+            stroke: var(--accent);
+        }
+
+        .time {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .controls-spacer {
+            flex: 1;
+        }
+
+        /* Models */
+        section { padding: 48px 0; }
+
+        section h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
+        }
+
+        .models {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .model {
+            padding: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: border-color 0.15s;
+        }
+
+        .model:hover {
+            border-color: #333;
+        }
+
+        .model-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .model-name {
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .model-provider {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .model-desc {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        .model-id {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .model-id code {
+            flex: 1;
+            padding: 6px 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            user-select: all;
+            word-break: break-all;
+            min-width: 0;
+        }
+
+        .copy-btn {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .copy-btn:hover {
+            border-color: #444;
+            color: var(--text);
+        }
+
+        .copy-btn.copied {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .copy-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Quick Start */
+        .quickstart {
+            padding: 40px 0 64px;
+            border-top: 1px solid var(--border);
+        }
+
+        .quickstart h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        pre {
+            padding: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            color: var(--text-dim);
+        }
+
+        pre .kw { color: #c084fc; }
+        pre .str { color: var(--accent); }
+        pre .cmt { color: #555; }
+
+        /* Footer */
+        footer {
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: #444;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            header { padding: 32px 0 24px; }
+            .brand h1 { font-size: 1.25rem; }
+            .models { grid-template-columns: 1fr; }
+            .endpoint { flex-direction: column; align-items: flex-start; }
+            .showcase { padding: 32px 0; }
+            .skip-indicator { width: 48px; height: 48px; }
+            .skip-indicator svg { width: 22px; height: 22px; }
+            .ctrl-btn svg { width: 16px; height: 16px; }
+            .controls { padding: 8px 10px 8px; gap: 6px; }
+            .time { font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <h1>OpenCode Proxy</h1>
+                <span class="status">online</span>
+            </div>
+            <p>Free AI models via OpenCode API — no rate limits from Cloudflare</p>
+            <div class="endpoint">
+                <div>
+                    <div class="label">Base URL</div>
+                    <code>https://janitor-pi.vercel.app</code>
+                </div>
+                <div>
+                    <div class="label">Endpoint</div>
+                    <code>/v1/chat/completions</code>
+                </div>
+            </div>
+        </header>
+
+        <section class="showcase">
+            <h2>Showcase</h2>
+            <div class="video-wrap paused" id="videoWrap">
+                <video autoplay loop muted playsinline id="showcaseVideo">
+                    <source src="/showcase.mp4" type="video/mp4">
+                </video>
+
+                <div class="skip-indicator left" id="skipLeft">
+                    <div style="text-align:center">
+                        <svg viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
+                        <div class="skip-label">10s</div>
+                    </div>
+                </div>
+                <div class="skip-indicator right" id="skipRight">
+                    <div style="text-align:center">
+                        <svg viewBox="0 0 24 24"><path d="M13 7l5 5-5 5"/><path d="M6 7l5 5-5 5"/></svg>
+                        <div class="skip-label">10s</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="progress-wrap" id="progressWrap">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="controls-row">
+                        <button class="ctrl-btn" id="playBtn" aria-label="Play/Pause">
+                            <svg viewBox="0 0 24 24" id="playIcon"><polygon points="5,3 19,12 5,21" fill="#fff" stroke="none"/></svg>
+                            <svg viewBox="0 0 24 24" id="pauseIcon" style="display:none"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/></svg>
+                        </button>
+                        <span class="time" id="timeDisplay">0:00 / 0:00</span>
+                        <div class="controls-spacer"></div>
+                        <button class="ctrl-btn" id="fsBtn" aria-label="Fullscreen">
+                            <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Supported Models</h2>
+            <div class="models">
+                <div class="model">
+                    <div class="model-header">
+                        <span class="model-name">MiMo v2.5</span>
+                        <span class="model-provider">Thinking</span>
+                    </div>
+                    <div class="model-desc">Compact reasoning model optimized for math, code, and logical problem-solving. JanitorAI can show or hide thinking when available.</div>
+                    <div class="model-id">
+                        <code>mimo-v2.5-free</code>
+                        <button class="copy-btn" data-model="mimo-v2.5-free" aria-label="Copy model ID">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="model">
+                    <div class="model-header">
+                        <span class="model-name">DeepSeek V4 Flash</span>
+                        <span class="model-provider">Thinking</span>
+                    </div>
+                    <div class="model-desc">Fast inference model with strong coding and analytical performance. Thinking metadata is preserved for compatible clients.</div>
+                    <div class="model-id">
+                        <code>deepseek-v4-flash-free</code>
+                        <button class="copy-btn" data-model="deepseek-v4-flash-free" aria-label="Copy model ID">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="model">
+                    <div class="model-header">
+                        <span class="model-name">Nemotron 3 Ultra</span>
+                        <span class="model-provider">Thinking</span>
+                    </div>
+                    <div class="model-desc">High-performance model built for structured data extraction and complex reasoning with preserved thinking fields.</div>
+                    <div class="model-id">
+                        <code>nemotron-3-ultra-free</code>
+                        <button class="copy-btn" data-model="nemotron-3-ultra-free" aria-label="Copy model ID">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="model">
+                    <div class="model-header">
+                        <span class="model-name">North Mini Code</span>
+                        <span class="model-provider">North</span>
+                    </div>
+                    <div class="model-desc">Lightweight code-specialized model for quick completions, refactoring, and code explanation tasks.</div>
+                    <div class="model-id">
+                        <code>north-mini-code-free</code>
+                        <button class="copy-btn" data-model="north-mini-code-free" aria-label="Copy model ID">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="quickstart">
+            <h2>Quick Start</h2>
+<pre><span class="cmt"># cURL</span>
+<span class="kw">curl</span> https://janitor-pi.vercel.app/v1/chat/completions \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{
+    "model": "mimo-v2.5-free",
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'</span>
+
+<span class="cmt"># Python (openai SDK)</span>
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = OpenAI(
+    base_url=<span class="str">"https://janitor-pi.vercel.app"</span>,
+    api_key=<span class="str">"anything"</span>
+)
+
+response = client.chat.completions.create(
+    model=<span class="str">"deepseek-v4-flash-free"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Hello"</span>}]
+)
+<span class="kw">print</span>(response.choices[0].message.content)</pre>
+        </section>
+
+        <footer>
+            Powered by OpenCode API — Proxy hosted on Vercel
+        </footer>
+    </div>
+    <script>
+        const wrap = document.getElementById('videoWrap');
+        const video = document.getElementById('showcaseVideo');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const fsBtn = document.getElementById('fsBtn');
+        const progressWrap = document.getElementById('progressWrap');
+        const progressFill = document.getElementById('progressFill');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const skipLeft = document.getElementById('skipLeft');
+        const skipRight = document.getElementById('skipRight');
+
+        function fmt(s) {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return m + ':' + String(sec).padStart(2, '0');
+        }
+
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+                wrap.classList.remove('paused');
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = '';
+            } else {
+                video.pause();
+                wrap.classList.add('paused');
+                playIcon.style.display = '';
+                pauseIcon.style.display = 'none';
+            }
+        }
+
+        playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePlay();
+        });
+
+        video.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePlay();
+        });
+
+        let lastTap = 0;
+        wrap.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            const rect = wrap.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const mid = rect.width / 2;
+
+            if (x < mid) {
+                video.currentTime = Math.max(0, video.currentTime - 10);
+                showSkip(skipLeft);
+            } else {
+                video.currentTime = Math.min(video.duration || 0, video.currentTime + 10);
+                showSkip(skipRight);
+            }
+        });
+
+        function showSkip(el) {
+            el.classList.remove('show');
+            void el.offsetWidth;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 400);
+        }
+
+        video.addEventListener('timeupdate', () => {
+            if (!video.duration) return;
+            const pct = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = pct + '%';
+            timeDisplay.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
+        });
+
+        progressWrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rect = progressWrap.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pct * (video.duration || 0);
+        });
+
+        let dragging = false;
+        progressWrap.addEventListener('mousedown', (e) => { dragging = true; seek(e); });
+        document.addEventListener('mousemove', (e) => { if (dragging) seek(e); });
+        document.addEventListener('mouseup', () => { dragging = false; });
+        progressWrap.addEventListener('touchstart', (e) => { dragging = true; seek(e.touches[0]); }, { passive: true });
+        document.addEventListener('touchmove', (e) => { if (dragging) seek(e.touches[0]); }, { passive: true });
+        document.addEventListener('touchend', () => { dragging = false; });
+
+        function seek(e) {
+            const rect = progressWrap.getBoundingClientRect();
+            const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            video.currentTime = pct * (video.duration || 0);
+        }
+
+        function goFullscreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (wrap.requestFullscreen) {
+                wrap.requestFullscreen();
+            } else if (wrap.webkitRequestFullscreen) {
+                wrap.webkitRequestFullscreen();
+            } else if (wrap.msRequestFullscreen) {
+                wrap.msRequestFullscreen();
+            }
+        }
+
+        fsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goFullscreen();
+        });
+
+        wrap.addEventListener('dblclick', (e) => e.preventDefault());
+
+        let hideTimer;
+        wrap.addEventListener('mousemove', () => {
+            wrap.classList.add('paused');
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => {
+                if (!video.paused) wrap.classList.remove('paused');
+            }, 2500);
+        });
+
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.model;
+                navigator.clipboard.writeText(id).then(() => {
+                    btn.classList.add('copied');
+                    btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+                    setTimeout(() => {
+                        btn.classList.remove('copied');
+                        btn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+                    }, 1500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

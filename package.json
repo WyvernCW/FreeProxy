@@ -1,0 +1,16 @@
+{
+  "name": "opencode-proxy",
+  "version": "1.0.0",
+  "description": "Free, open-source proxy for the OpenCode API with JanitorAI compatibility",
+  "private": false,
+  "license": "MIT",
+  "scripts": {
+    "deploy": "vercel --prod",
+    "dev": "vercel dev"
+  },
+  "keywords": ["opencode", "proxy", "janitorai", "ai", "chat", "api"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WyvernCW/FreeProxy.git"
+  }
+}

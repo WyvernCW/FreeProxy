@@ -1,0 +1,56 @@
+{
+    "version": 2,
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                { "key": "X-Content-Type-Options", "value": "nosniff" },
+                { "key": "X-Frame-Options", "value": "DENY" },
+                { "key": "X-XSS-Protection", "value": "1; mode=block" },
+                { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+                { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+                { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+                { "key": "X-DNS-Prefetch-Control", "value": "off" }
+            ]
+        },
+        {
+            "source": "/(.*)",
+            "headers": [
+                { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://opencode.ai; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
+            ]
+        },
+        {
+            "source": "/showcase.mp4",
+            "headers": [
+                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+            ]
+        },
+        {
+            "source": "/logo.jpg",
+            "headers": [
+                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+            ]
+        },
+        {
+            "source": "/v1/(.*)",
+            "headers": [
+                { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
+                { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+            ]
+        }
+    ],
+    "builds": [
+        { "src": "api/v1/chat/completions.js", "use": "@vercel/node" },
+        { "src": "api/v1/models.js", "use": "@vercel/node" },
+        { "src": "showcase.mp4", "use": "@vercel/static" },
+        { "src": "logo.jpg", "use": "@vercel/static" },
+        { "src": "index.html", "use": "@vercel/static" }
+    ],
+    "routes": [
+        { "src": "/v1/chat/completions", "dest": "/api/v1/chat/completions.js" },
+        { "src": "/v1/models", "dest": "/api/v1/models.js" },
+        { "src": "/showcase.mp4", "dest": "/showcase.mp4" },
+        { "src": "/logo.jpg", "dest": "/logo.jpg" },
+        { "src": "/(.*)", "dest": "/index.html" }
+    ]
+}

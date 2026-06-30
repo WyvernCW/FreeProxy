@@ -1,0 +1,10 @@
+.vercel/
+.env
+.env.local
+.env.*.local
+node_modules/
+wrangler.toml
+test.ps1
+test1.ps1
+server.express.js
+.vercel/
