@@ -1,10 +1,12 @@
 const OPENCODE_URL = "https://opencode.ai/zen/v1/chat/completions";
+const CHUB_URL = "https://gateway.chub.ai/v1/chat/completions";
 
 const MODELS = {
     "mimo-v2.5-free":          { provider: "opencode", upstream: "mimo-v2.5-free" },
     "deepseek-v4-flash-free":  { provider: "opencode", upstream: "deepseek-v4-flash-free" },
     "nemotron-3-ultra-free":   { provider: "opencode", upstream: "nemotron-3-ultra-free" },
-    "north-mini-code-free":    { provider: "opencode", upstream: "north-mini-code-free" }
+    "north-mini-code-free":    { provider: "opencode", upstream: "north-mini-code-free" },
+    "mythomax":                { provider: "chub",     upstream: "mobile" }
 };
 
 const ALLOWED_MODELS = Object.keys(MODELS);
@@ -358,29 +360,40 @@ export default async function handler(req, res) {
     Object.assign(body, clean);
 
     const modelInfo = MODELS[body.model];
+    const isChub = modelInfo.provider === "chub";
 
     body.model = modelInfo.upstream;
 
-    const keys = [
+    const apiUrl = isChub ? CHUB_URL : OPENCODE_URL;
+
+    const keys = isChub ? [
+        process.env.CHUB_KEY_1,
+        process.env.CHUB_KEY_2,
+        process.env.CHUB_KEY_3
+    ].filter(Boolean) : [
         process.env.OPENCODE_KEY_1,
         process.env.OPENCODE_KEY_2,
         process.env.OPENCODE_KEY_3
     ].filter(Boolean);
 
-    const apiUrl = OPENCODE_URL;
-
     let response;
     let lastError;
     for (let i = 0; i < keys.length; i++) {
         try {
+            const headers = {
+                "Content-Type": "application/json"
+            };
+            if (isChub) {
+                headers["samwise"] = keys[i];
+                headers["CH-API-KEY"] = keys[i];
+            } else {
+                headers["Authorization"] = `Bearer ${keys[i]}`;
+            }
             response = await fetch(apiUrl, {
                 method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${keys[i]}`,
-                    "Content-Type": "application/json"
-                },
+                headers,
                 body: JSON.stringify(body),
-                signal: AbortSignal.timeout(120000)
+                signal: AbortSignal.timeout(isChub ? 30000 : 120000)
             });
             if (response.status !== 429) break;
             lastError = await response.text();

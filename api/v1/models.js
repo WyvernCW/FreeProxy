@@ -2,7 +2,8 @@ const ALLOWED_MODELS = [
     "mimo-v2.5-free",
     "deepseek-v4-flash-free",
     "nemotron-3-ultra-free",
-    "north-mini-code-free"
+    "north-mini-code-free",
+    "mythomax"
 ];
 
 const CORS = {
