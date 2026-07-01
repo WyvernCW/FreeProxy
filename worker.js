@@ -3,16 +3,15 @@ export default {
         const url = new URL(request.url);
         const upstream = "https://janitor-pi.vercel.app";
 
+        const CORS_HEADERS = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, http-referer, samwise, CH-API-KEY, x-title",
+            "Access-Control-Max-Age": "86400"
+        };
+
         if (request.method === "OPTIONS") {
-            return new Response(null, {
-                status: 204,
-                headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                    "Access-Control-Max-Age": "86400"
-                }
-            });
+            return new Response(null, { status: 204, headers: CORS_HEADERS });
         }
 
         const targetUrl = upstream + url.pathname + url.search;
@@ -24,21 +23,17 @@ export default {
             }
         });
 
-        const upstreamReq = new Request(targetUrl, {
+        const upstreamRes = await fetch(new Request(targetUrl, {
             method: request.method,
             headers,
             body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
             redirect: "follow"
-        });
-
-        const upstreamRes = await fetch(upstreamReq);
+        }));
 
         const responseHeaders = new Headers(upstreamRes.headers);
-        responseHeaders.set("Access-Control-Allow-Origin", "*");
-        responseHeaders.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        responseHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        responseHeaders.delete("X-Content-Security-Policy");
+        Object.entries(CORS_HEADERS).forEach(([k, v]) => responseHeaders.set(k, v));
         responseHeaders.delete("Content-Security-Policy");
+        responseHeaders.delete("X-Content-Security-Policy");
         responseHeaders.delete("Strict-Transport-Security");
         responseHeaders.delete("X-Frame-Options");
 

@@ -1,15 +1,10 @@
 const OPENCODE_URL = "https://opencode.ai/zen/v1/chat/completions";
-const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 const MODELS = {
     "mimo-v2.5-free":          { provider: "opencode", upstream: "mimo-v2.5-free" },
     "deepseek-v4-flash-free":  { provider: "opencode", upstream: "deepseek-v4-flash-free" },
     "nemotron-3-ultra-free":   { provider: "opencode", upstream: "nemotron-3-ultra-free" },
-    "north-mini-code-free":    { provider: "opencode", upstream: "north-mini-code-free" },
-    "minimax-m3":              { provider: "nvidia",   upstream: "minimaxai/minimax-m3" },
-    "step-3.7-flash":          { provider: "nvidia",   upstream: "stepfun-ai/step-3.7-flash" },
-    "kimi-k2.6":               { provider: "nvidia",   upstream: "moonshotai/kimi-k2.6" },
-    "deepseek-v4-pro":         { provider: "nvidia",   upstream: "deepseek-ai/deepseek-v4-pro" }
+    "north-mini-code-free":    { provider: "opencode", upstream: "north-mini-code-free" }
 };
 
 const ALLOWED_MODELS = Object.keys(MODELS);
@@ -363,25 +358,16 @@ export default async function handler(req, res) {
     Object.assign(body, clean);
 
     const modelInfo = MODELS[body.model];
-    const isNvidia = modelInfo.provider === "nvidia";
 
     body.model = modelInfo.upstream;
 
-    const keys = isNvidia ? [
-        process.env.NVIDIA_KEY_1,
-        process.env.NVIDIA_KEY_2,
-        process.env.NVIDIA_KEY_3
-    ].filter(Boolean) : [
+    const keys = [
         process.env.OPENCODE_KEY_1,
         process.env.OPENCODE_KEY_2,
         process.env.OPENCODE_KEY_3
     ].filter(Boolean);
 
-    const apiUrl = isNvidia ? NVIDIA_URL : OPENCODE_URL;
-
-    if (isNvidia) {
-        body.chat_template_kwargs = { thinking: true };
-    }
+    const apiUrl = OPENCODE_URL;
 
     let response;
     let lastError;
