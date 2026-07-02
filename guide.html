@@ -331,6 +331,18 @@
             <div class="divider"></div>
 
             <div class="error">
+                <div class="tag">Error — 405 Method Not Allowed</div>
+                <p>Proxy error 405: The server rejected the request method</p>
+            </div>
+
+            <div class="fix">
+                <div class="tag">Fix</div>
+                <p>Make sure you're entering the base URL only: <code>https://janitor-pi.mochibun.workers.dev/v1</code>. Do not include <code>/chat/completions</code> in the URL field — the platform adds it automatically. Also ensure the platform is sending POST requests, not GET.</p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="error">
                 <div class="tag">Error — Empty Response</div>
                 <p>Error: Empty response received from API</p>
             </div>

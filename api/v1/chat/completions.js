@@ -347,8 +347,14 @@ export default async function handler(req, res) {
     if (body.top_p !== undefined) {
         body.top_p = Math.min(Math.max(0, Number(body.top_p) || 1), 1);
     }
+
+    const modelInfo = MODELS[body.model];
+    const isChub = modelInfo.provider === "chub";
+
     if (body.max_tokens !== undefined) {
         body.max_tokens = Math.floor(Number(body.max_tokens) || 4096);
+    } else if (isChub) {
+        body.max_tokens = 4096;
     }
 
     const clean = { model: body.model, messages: body.messages };
@@ -359,10 +365,7 @@ export default async function handler(req, res) {
     Object.keys(body).forEach(k => delete body[k]);
     Object.assign(body, clean);
 
-    const modelInfo = MODELS[body.model];
-    const isChub = modelInfo.provider === "chub";
-
-    body.model = modelInfo.upstream;
+    body.model = MODELS[body.model].upstream;
 
     const apiUrl = isChub ? CHUB_URL : OPENCODE_URL;
 
