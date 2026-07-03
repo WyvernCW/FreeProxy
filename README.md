@@ -17,15 +17,10 @@ A free, open-source proxy for the OpenCode API, designed for use with JanitorAI 
 
 ## Supported Models
 
-- `mimo-v2.5-free` — Thinking/reasoning model
-- `deepseek-v4-flash-free` — Fast inference, thinking
-- `nemotron-3-ultra-free` — Structured reasoning, thinking
-- `north-mini-code-free` — Code-specialized
-- `glm-4.7` — Zhipu AI, thinking/reasoning
-- `deepseek-r1` — DeepSeek R1 distilled (32B), chain-of-thought
-- `kimi-k2.5` — Moonshot, thinking/reasoning
-- `qwen2.5-coder` — Alibaba, 32B code-specialized
-- `mythomax` — Roleplay-optimized
+- `mimo-v2.5-free`
+- `deepseek-v4-flash-free`
+- `nemotron-3-ultra-free`
+- `north-mini-code-free`
 
 ## Setup
 
@@ -52,17 +47,9 @@ vercel --prod
 In your Vercel dashboard, add these environment variables:
 
 ```
-# OpenCode (required - at least one)
 OPENCODE_KEY_1=sk-your-first-api-key
 OPENCODE_KEY_2=sk-your-second-api-key  (optional)
 OPENCODE_KEY_3=sk-your-third-api-key   (optional)
-
-# Cloudflare AI (for cloudflare models)
-CLOUDFLARE_KEY_1=cfk-your-cloudflare-api-token
-CLOUDFLARE_ACCOUNT_ID=your-account-id
-
-# Chub.ai (for mythomax)
-CHUB_KEY_1=glpat-your-chub-api-key
 ```
 
 ### 4. Configure JanitorAI

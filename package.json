@@ -5,12 +5,23 @@
   "private": false,
   "license": "MIT",
   "scripts": {
-    "deploy": "vercel --prod",
-    "dev": "vercel dev"
+    "deploy": "wrangler deploy",
+    "dev": "vercel dev",
+    "preview": "wrangler dev"
   },
-  "keywords": ["opencode", "proxy", "janitorai", "ai", "chat", "api"],
+  "keywords": [
+    "opencode",
+    "proxy",
+    "janitorai",
+    "ai",
+    "chat",
+    "api"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/WyvernCW/FreeProxy.git"
+  },
+  "devDependencies": {
+    "wrangler": "^4.106.0"
   }
 }

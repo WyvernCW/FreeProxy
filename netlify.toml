@@ -1,0 +1,24 @@
+[build]
+  command = "echo done"
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/v1/chat/completions"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+[[redirects]]
+  from = "/v1/models"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
