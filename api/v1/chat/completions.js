@@ -40,14 +40,23 @@ export default async function handler(req, res) {
             body
         });
 
-        res.writeHead(upstreamRes.status, {
-            ...CORS,
-            "Content-Type": upstreamRes.headers.get("Content-Type") || "application/json",
-            "Cache-Control": "no-store"
-        });
+        const ct = upstreamRes.headers.get("Content-Type") || "application/json";
 
-        const { Readable } = require("stream");
-        Readable.fromWeb(upstreamRes.body).pipe(res);
+        if (body.includes('"stream":true') || body.includes('"stream": true')) {
+            res.writeHead(200, { ...CORS, "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store" });
+            const reader = upstreamRes.body.getReader();
+            const dec = new TextDecoder();
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                res.write(dec.decode(value, { stream: true }));
+            }
+            res.end();
+        } else {
+            const text = await upstreamRes.text();
+            res.writeHead(upstreamRes.status, { ...CORS, "Content-Type": ct, "Cache-Control": "no-store" });
+            res.end(text);
+        }
     } catch (err) {
         res.writeHead(502, { ...CORS, "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: { message: "Tunnel unreachable: " + err.message } }));
