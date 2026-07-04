@@ -5,6 +5,7 @@
   "private": false,
   "license": "MIT",
   "scripts": {
+    "start": "node proxy.mjs",
     "deploy": "wrangler deploy",
     "dev": "vercel dev",
     "preview": "wrangler dev"
@@ -23,5 +24,9 @@
   },
   "devDependencies": {
     "wrangler": "^4.106.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "firebase": "^12.15.0"
   }
 }
