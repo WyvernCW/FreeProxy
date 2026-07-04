@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     } catch { body = "{}"; }
 
     try {
-        const upstreamRes = await fetch(TUNNEL_URL + req.url, {
+        const upstreamRes = await fetch(TUNNEL_URL + "/v1/chat/completions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body
